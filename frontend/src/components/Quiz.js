@@ -1,27 +1,52 @@
 import React, { useState } from 'react';
 import './../styles/Quiz.css';
 
-const Quiz = ({ questions, onComplete }) => {
-  const [currentQuestion, setCurrentQuestion] = useState(0);
+const Quiz = ({ quizzes, onComplete }) => {
+  const [currentQuizIndex, setCurrentQuizIndex] = useState(0);
   const [score, setScore] = useState(0);
+  const [feedback, setFeedback] = useState('');
 
-  const handleAnswer = (isCorrect) => {
-    if (isCorrect) setScore(score + 20); // 20 XP per correct answer
-    if (currentQuestion < questions.length - 1) {
-      setCurrentQuestion(currentQuestion + 1);
+  const handleAnswerClick = (selectedAnswer) => {
+    const currentQuiz = quizzes[currentQuizIndex];
+    if (selectedAnswer === currentQuiz.correctAnswer) {
+      setScore(score + 1);
+      setFeedback('Correct! 🎉');
+      setTimeout(() => {
+        setFeedback('');
+        if (currentQuizIndex < quizzes.length - 1) {
+          setCurrentQuizIndex(currentQuizIndex + 1);
+        } else {
+          onComplete(score + 1);
+        }
+      }, 1000);
     } else {
-      onComplete(score + (isCorrect ? 20 : 0));
+      setFeedback('Incorrect. Try again! ❌');
     }
   };
 
   return (
     <div className="quiz">
-      <h2>{questions[currentQuestion]?.question}</h2>
-      {questions[currentQuestion]?.options.map((option, index) => (
-        <button key={index} onClick={() => handleAnswer(option.isCorrect)}>
-          {option.text}
-        </button>
-      ))}
+      <h2>Quiz</h2>
+      {quizzes.length > 0 ? (
+        <>
+          <p>{quizzes[currentQuizIndex].question}</p>
+          <ul>
+            {quizzes[currentQuizIndex].options.map((option, index) => (
+              <li key={index}>
+                <button onClick={() => handleAnswerClick(option)}>
+                  {option}
+                </button>
+              </li>
+            ))}
+          </ul>
+          {feedback && <p className="feedback">{feedback}</p>}
+          <p>
+            Question {currentQuizIndex + 1} of {quizzes.length}
+          </p>
+        </>
+      ) : (
+        <p>No quiz available for this lesson.</p>
+      )}
     </div>
   );
 };

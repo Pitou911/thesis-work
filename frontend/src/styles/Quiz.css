@@ -1,4 +1,4 @@
-.quiz {
+/* .quiz {
     padding: 20px;
     background-color: transparent;
     border-radius: 5px;
@@ -9,4 +9,59 @@
     display: block;
     margin: 10px 0;
     width: 100%;
+    max-width: 300px;
+    background-color: #123524;
   }
+  .quiz button:hover{
+    background-color: #123524b4;
+  } */
+   /* src/styles/Quiz.css */
+.quiz {
+  margin-top: 20px;
+  padding: 20px;
+  background-color: transparent;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.quiz h2 {
+  margin-bottom: 20px;
+  font-size: 24px;
+  color: #123524;
+}
+
+.quiz p {
+  font-size: 18px;
+  margin-bottom: 20px;
+}
+
+.quiz ul {
+  list-style: none;
+  padding: 0;
+}
+
+.quiz ul li {
+  margin-bottom: 10px;
+}
+
+.quiz ul li button {
+  width: 100%;
+  padding: 10px;
+  font-size: 16px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  background-color: #123524;
+  cursor: pointer;
+  transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+
+.quiz ul li button:hover {
+  background-color: #123524b4;
+  color: white;
+}
+
+.quiz p:last-child {
+  margin-top: 20px;
+  font-size: 14px;
+  color: #666;
+}
