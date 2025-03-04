@@ -1,0 +1,72 @@
+.home {
+    padding: 20px;
+  }
+  
+  .hero {
+    text-align: center;
+    padding: 50px 0;
+    width: 100%;
+    max-width: 700px;
+    margin: 0 auto;
+  }
+  
+  .hero h1 {
+    color: #123524;
+  }
+
+  .why-progplay .code-btn{
+    padding: 10px 20px;
+    background-color: #123524;
+    color: white;
+    border: none;
+    cursor: pointer;
+    border-radius: 5px;
+  }
+  
+  .why-progplay, .languages-feature {
+    margin: 100px 0;
+    text-align: center;
+  }
+  .cards, .languages {
+    display: flex;
+    justify-content: space-around;
+    flex-wrap: wrap;
+  }
+  .cards, .languages{
+    margin: 50px;
+  }
+  .card, .language-card {
+    background: white;
+    padding: 20px;
+    margin: 10px;
+    border-radius: 10px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  }
+  .card{
+    width: 20%;
+  }
+  .language-card{
+    width: 15%;
+  }
+  .why-img{
+    width: 100%;
+    height: 300px;
+  }
+  .language-img{
+    width: 50px;
+  }
+  .hero .buttons{
+    margin-top: 30px;
+  }
+  .features{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .features-para{
+    font-size: 18px;
+    font-weight: bold;
+  }
+  .features-img img{
+    width: 60px;
+  }

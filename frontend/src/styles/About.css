@@ -1,0 +1,66 @@
+/* General styling for the about container */
+.about-container {
+  max-width: 800px;
+  margin: 0 auto;
+  width: 100%;
+  padding: 20px;
+  font-family: Arial, sans-serif;
+  line-height: 1.6;
+  color: #333;
+}
+
+/* Styling for the main heading */
+.about-container h1 {
+  font-size: 2.5rem;
+  text-align: center;
+  color: #123524;
+  margin-bottom: 20px;
+}
+
+/* Styling for subheadings */
+.about-container h2 {
+  font-size: 2rem;
+  color: #123524;
+  margin-top: 30px;
+  margin-bottom: 15px;
+}
+
+/* Styling for paragraphs */
+.about-description, .vision-text {
+  font-size: 1.1rem;
+  text-align: justify;
+  margin-bottom: 20px;
+}
+
+/* Styling for the features list */
+.features-list {
+  list-style-type: disc;
+  padding-left: 40px;
+  margin-bottom: 20px;
+}
+
+.features-list li {
+  font-size: 1rem;
+  margin-bottom: 10px;
+}
+
+/* Styling for the CTA section */
+.cta-section {
+  text-align: center;
+  margin-top: 30px;
+  padding: 20px;
+  background-color: #f9f9f9;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.cta-section p {
+  font-size: 1.1rem;
+  margin-bottom: 20px;
+}
+
+/* Styling for the CTA button */
+#getstarted:hover{
+  background-color: #123524;
+  color: white;
+}
