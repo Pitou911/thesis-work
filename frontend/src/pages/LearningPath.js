@@ -33,7 +33,7 @@ const LearningPath = () => {
         if (data.length > 0) {
           setCurrentLesson(data[0]);
           setCurrentLessonIndex(0);
-          await fetchQuizData(data[0].id); // Await to ensure initial quiz data is loaded
+          await fetchQuizData(data[0].id);
         }
       } catch (error) {
         console.error('Error fetching lessons:', error);
@@ -71,7 +71,7 @@ const LearningPath = () => {
       if (!response.ok) throw new Error('Failed to fetch quiz data');
       const data = await response.json();
       setQuizData(data);
-      return data; // Return data for chaining
+      return data;
     } catch (error) {
       console.error('Error fetching quiz data:', error);
       return [];
@@ -79,7 +79,7 @@ const LearningPath = () => {
   };
 
   const isLessonLocked = (index) => {
-    if (index === 0) return false; // First lesson is always unlocked
+    if (index === 0) return false;
     const previousLessonProgress = userProgress.find(p => p.lesson.id === lessons[index - 1].id);
     return !previousLessonProgress || !previousLessonProgress.completed;
   };
@@ -97,7 +97,6 @@ const LearningPath = () => {
       const nextLessonIndex = currentLessonIndex + 1;
       const nextLesson = lessons[nextLessonIndex];
 
-      // Update progress to ensure lock status is current
       const updatedProgressResponse = await fetch(`http://localhost:8080/api/user_progress/${userId}/${languageMap[selectedLanguage]}`);
       if (!updatedProgressResponse.ok) throw new Error('Failed to fetch updated user progress');
       const updatedProgress = await updatedProgressResponse.json();
@@ -106,7 +105,7 @@ const LearningPath = () => {
       if (!isLessonLocked(nextLessonIndex)) {
         setCurrentLessonIndex(nextLessonIndex);
         setCurrentLesson(nextLesson);
-        await fetchQuizData(nextLesson.id); // Ensure quiz data is loaded
+        await fetchQuizData(nextLesson.id);
       } else {
         console.log('Next lesson is still locked:', nextLesson.title);
       }
@@ -115,7 +114,6 @@ const LearningPath = () => {
 
   const handleQuizComplete = async (xp) => {
     try {
-      // Update progress with quiz completion
       const payload = {
         user: { id: userId },
         lesson: { id: currentLesson.id },
@@ -129,26 +127,24 @@ const LearningPath = () => {
       });
       if (!response.ok) throw new Error(`Failed to update user progress: ${await response.text()}`);
 
-      // Fetch updated progress
       const updatedProgressResponse = await fetch(`http://localhost:8080/api/user_progress/${userId}/${languageMap[selectedLanguage]}`);
       if (!updatedProgressResponse.ok) throw new Error('Failed to fetch updated user progress');
       const updatedProgress = await updatedProgressResponse.json();
       setUserProgress(updatedProgress);
 
-      // Update progress percentage
       const totalLessons = lessons.length;
       const completedLessons = updatedProgress.filter(progress => progress.completed).length;
       const percentage = totalLessons > 0 ? (completedLessons / totalLessons) * 100 : 0;
       setProgressPercentage(percentage);
 
-      // Update total XP
       const userResponse = await fetch(`http://localhost:8080/api/users/${userId}`);
       if (!userResponse.ok) throw new Error('Failed to fetch user data');
       const userData = await userResponse.json();
       setTotalXp(userData.xp);
 
-      // Move to the next lesson if quiz was completed successfully
+      // Dispatch custom event to notify other components (e.g., Nav.js)
       if (xp > 0) {
+        window.dispatchEvent(new Event('xpUpdated'));
         console.log('Quiz completed with XP:', xp, 'Moving to next lesson...');
         await handleNextLesson();
       }
