@@ -112,6 +112,16 @@ const LearningPath = () => {
     }
   };
 
+  const handlePreviousLesson = () => {
+    if (currentLessonIndex > 0) {
+      const prevLessonIndex = currentLessonIndex - 1;
+      const prevLesson = lessons[prevLessonIndex];
+      setCurrentLessonIndex(prevLessonIndex);
+      setCurrentLesson(prevLesson);
+      fetchQuizData(prevLesson.id);
+    }
+  };
+
   const handleQuizComplete = async (xp) => {
     try {
       const payload = {
@@ -142,7 +152,6 @@ const LearningPath = () => {
       const userData = await userResponse.json();
       setTotalXp(userData.xp);
 
-      // Dispatch custom event to notify other components (e.g., Nav.js)
       if (xp > 0) {
         window.dispatchEvent(new Event('xpUpdated'));
         console.log('Quiz completed with XP:', xp, 'Moving to next lesson...');
@@ -192,6 +201,22 @@ const LearningPath = () => {
               }))}
               onComplete={handleQuizComplete}
             />
+            <div className="navigation-buttons">
+              <button
+                onClick={handlePreviousLesson}
+                disabled={currentLessonIndex === 0}
+                className="nav-btn prev-btn"
+              >
+                Previous
+              </button>
+              <button
+                onClick={handleNextLesson}
+                className={`nav-btn next-btn ${currentLessonIndex < lessons.length - 1 && isLessonLocked(currentLessonIndex + 1) ? 'locked' : ''}`}
+                disabled={currentLessonIndex === lessons.length - 1}
+              >
+                Next
+              </button>
+            </div>
           </>
         ) : (
           <p>Select a lesson to get started.</p>
