@@ -1,8 +1,10 @@
 import React from "react";
 import "./../styles/About.css"; // Import the CSS file
 import { Link } from "react-router-dom";
+import { useAuth } from "../contexts/AuthContext";
 
 function About() {
+    const { user } = useAuth();
   return (
     <div className="about-container">
       <h1>About Us</h1>
@@ -36,7 +38,7 @@ function About() {
 
       <div className="cta-section">
         <p>Join us on this exciting journey as we redefine how programming is taught and learned. Whether you're here to start your coding adventure or to enhance your skills, we’re here to support you every step of the way.</p>
-        <Link to='/signup' className="btn signup-btn" id="getstarted">Get Started</Link>
+        <Link to={user ? '/learning-path' : "/signup"} className="btn signup-btn" id="getstarted">Get Started</Link>
       </div>
     </div>
   );

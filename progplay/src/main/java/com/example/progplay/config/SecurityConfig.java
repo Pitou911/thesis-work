@@ -2,6 +2,7 @@ package com.example.progplay.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -27,8 +28,23 @@ public class SecurityConfig {
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .csrf().disable()
             .authorizeHttpRequests(authorize -> authorize
-                .requestMatchers("/api/users/register", "/api/lessons/**", "/api/quizzes/**", "/api/users","api/quizzes", "api/users/login").permitAll()
+                .requestMatchers(
+                    "/api/users/register",
+                    "/api/users/login",
+                    "/api/lessons/**",
+                    "/api/quizzes/**",
+                    "/api/user_progress/**",
+                    "/api/users",               // List all users
+                    "/api/users/{id}",          // Get user by ID
+                    "/api/users/username/{username}" // Get user by username
+                ).permitAll()
                 .anyRequest().authenticated()
+            )
+            .exceptionHandling(exception -> exception
+                .accessDeniedHandler((request, response, accessDeniedException) -> {
+                    System.out.println("Access Denied for: " + request.getRequestURI());
+                    response.sendError(HttpStatus.FORBIDDEN.value(), "Access Denied");
+                })
             );
         return http.build();
     }

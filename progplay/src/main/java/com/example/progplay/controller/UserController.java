@@ -1,6 +1,7 @@
 package com.example.progplay.controller;
 
 import com.example.progplay.model.User;
+import com.example.progplay.repository.UserRepository;
 import com.example.progplay.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -13,6 +14,9 @@ import java.util.List;
 public class UserController {
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private UserRepository userRepository;
 
     @PostMapping("/register")
     public User register(@RequestBody User user) {
@@ -29,11 +33,22 @@ public class UserController {
         }
     }
 
-    @GetMapping("/{username}")
-    public User getUser(@PathVariable String username) {
-        return userService.findByUsername(username);
+    @GetMapping("/username/{username}")
+    public ResponseEntity<User> getUser(@PathVariable String username) {
+        User user = userService.findByUsername(username);
+        if (user == null) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(user);
     }
 
+    @GetMapping("/{id}")
+    public ResponseEntity<User> getUserById(@PathVariable Long id) {
+        return userRepository.findById(id)
+            .map(ResponseEntity::ok)
+            .orElseGet(() -> ResponseEntity.notFound().build());
+    }
+    
     @GetMapping
     public List<User> getAllUsers() {
         return userService.getAllUsers();

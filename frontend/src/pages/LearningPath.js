@@ -2,83 +2,180 @@ import React, { useState, useEffect } from 'react';
 import Quiz from '../components/Quiz';
 import ProgressBar from '../components/ProgressBar';
 import './../styles/LearningPath.css';
+import { useAuth } from '../contexts/AuthContext';
 
 const LearningPath = () => {
-  const [currentLesson, setCurrentLesson] = useState(null); // Store the selected lesson object
-  const [lessons, setLessons] = useState([]); // Store fetched lessons
-  const [quizData, setQuizData] = useState([]); // Store quiz data for the selected lesson
+  const { user } = useAuth();
+  const [currentLesson, setCurrentLesson] = useState(null);
+  const [lessons, setLessons] = useState([]);
+  const [quizData, setQuizData] = useState([]);
   const [selectedLanguage, setSelectedLanguage] = useState('Python');
+  const [userProgress, setUserProgress] = useState([]);
+  const [progressPercentage, setProgressPercentage] = useState(0);
+  const [currentLessonIndex, setCurrentLessonIndex] = useState(0);
+  const [totalXp, setTotalXp] = useState(0);
 
-  // Map language names to valid grammar values
+  const userId = user.id;
+
   const languageMap = {
-    Python: 'python',
-    'C++': 'cpp',
-    Java: 'java',
+    Python: 'PYTHON',
+    'C++': 'CPP',
+    Java: 'JAVA',
   };
 
-  // Fetch lessons when the selected language changes
   useEffect(() => {
     const fetchLessons = async () => {
       try {
-        const response = await fetch(`http://localhost:8080/api/lessons/${languageMap[selectedLanguage]}`);
-        if (!response.ok) {
-          throw new Error('Failed to fetch lessons');
-        }
+        const response = await fetch(`http://localhost:8080/api/lessons/language/${languageMap[selectedLanguage]}`);
+        if (!response.ok) throw new Error('Failed to fetch lessons');
         const data = await response.json();
-        setLessons(data); // Update the lessons state with fetched data
+        setLessons(data);
         if (data.length > 0) {
-          setCurrentLesson(data[0]); // Set the first lesson as the default
-          fetchQuizData(data[0].id); // Fetch quiz data for the first lesson
+          setCurrentLesson(data[0]);
+          setCurrentLessonIndex(0);
+          await fetchQuizData(data[0].id); // Await to ensure initial quiz data is loaded
         }
       } catch (error) {
         console.error('Error fetching lessons:', error);
       }
     };
-
     fetchLessons();
-  }, [selectedLanguage]); // Re-run when selectedLanguage changes
+  }, [selectedLanguage]);
 
-  // Fetch quiz data for the selected lesson
+  useEffect(() => {
+    const fetchUserProgress = async () => {
+      try {
+        const response = await fetch(`http://localhost:8080/api/user_progress/${userId}/${languageMap[selectedLanguage]}`);
+        if (!response.ok) throw new Error('Failed to fetch user progress');
+        const data = await response.json();
+        setUserProgress(data);
+        const totalLessons = lessons.length;
+        const completedLessons = data.filter(progress => progress.completed).length;
+        const percentage = totalLessons > 0 ? (completedLessons / totalLessons) * 100 : 0;
+        setProgressPercentage(percentage);
+
+        const userResponse = await fetch(`http://localhost:8080/api/users/${userId}`);
+        if (!userResponse.ok) throw new Error('Failed to fetch user data');
+        const userData = await userResponse.json();
+        setTotalXp(userData.xp);
+      } catch (error) {
+        console.error('Error fetching user progress:', error);
+      }
+    };
+    if (lessons.length > 0) fetchUserProgress();
+  }, [lessons, selectedLanguage]);
+
   const fetchQuizData = async (lessonId) => {
     try {
       const response = await fetch(`http://localhost:8080/api/quizzes/${lessonId}`);
-      if (!response.ok) {
-        throw new Error('Failed to fetch quiz data');
-      }
+      if (!response.ok) throw new Error('Failed to fetch quiz data');
       const data = await response.json();
-      setQuizData(data); // Update the quizData state with fetched data
+      setQuizData(data);
+      return data; // Return data for chaining
     } catch (error) {
       console.error('Error fetching quiz data:', error);
+      return [];
     }
   };
 
-  // Handle lesson selection
-  const handleLessonClick = (lesson) => {
-    setCurrentLesson(lesson); // Set the selected lesson
-    fetchQuizData(lesson.id); // Fetch quiz data for the selected lesson
+  const isLessonLocked = (index) => {
+    if (index === 0) return false; // First lesson is always unlocked
+    const previousLessonProgress = userProgress.find(p => p.lesson.id === lessons[index - 1].id);
+    return !previousLessonProgress || !previousLessonProgress.completed;
+  };
+
+  const handleLessonClick = (lesson, index) => {
+    if (!isLessonLocked(index)) {
+      setCurrentLesson(lesson);
+      fetchQuizData(lesson.id);
+      setCurrentLessonIndex(index);
+    }
+  };
+
+  const handleNextLesson = async () => {
+    if (currentLessonIndex < lessons.length - 1) {
+      const nextLessonIndex = currentLessonIndex + 1;
+      const nextLesson = lessons[nextLessonIndex];
+
+      // Update progress to ensure lock status is current
+      const updatedProgressResponse = await fetch(`http://localhost:8080/api/user_progress/${userId}/${languageMap[selectedLanguage]}`);
+      if (!updatedProgressResponse.ok) throw new Error('Failed to fetch updated user progress');
+      const updatedProgress = await updatedProgressResponse.json();
+      setUserProgress(updatedProgress);
+
+      if (!isLessonLocked(nextLessonIndex)) {
+        setCurrentLessonIndex(nextLessonIndex);
+        setCurrentLesson(nextLesson);
+        await fetchQuizData(nextLesson.id); // Ensure quiz data is loaded
+      } else {
+        console.log('Next lesson is still locked:', nextLesson.title);
+      }
+    }
+  };
+
+  const handleQuizComplete = async (xp) => {
+    try {
+      // Update progress with quiz completion
+      const payload = {
+        user: { id: userId },
+        lesson: { id: currentLesson.id },
+        xpEarned: xp,
+        completed: true,
+      };
+      const response = await fetch('http://localhost:8080/api/user_progress', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      if (!response.ok) throw new Error(`Failed to update user progress: ${await response.text()}`);
+
+      // Fetch updated progress
+      const updatedProgressResponse = await fetch(`http://localhost:8080/api/user_progress/${userId}/${languageMap[selectedLanguage]}`);
+      if (!updatedProgressResponse.ok) throw new Error('Failed to fetch updated user progress');
+      const updatedProgress = await updatedProgressResponse.json();
+      setUserProgress(updatedProgress);
+
+      // Update progress percentage
+      const totalLessons = lessons.length;
+      const completedLessons = updatedProgress.filter(progress => progress.completed).length;
+      const percentage = totalLessons > 0 ? (completedLessons / totalLessons) * 100 : 0;
+      setProgressPercentage(percentage);
+
+      // Update total XP
+      const userResponse = await fetch(`http://localhost:8080/api/users/${userId}`);
+      if (!userResponse.ok) throw new Error('Failed to fetch user data');
+      const userData = await userResponse.json();
+      setTotalXp(userData.xp);
+
+      // Move to the next lesson if quiz was completed successfully
+      if (xp > 0) {
+        console.log('Quiz completed with XP:', xp, 'Moving to next lesson...');
+        await handleNextLesson();
+      }
+    } catch (error) {
+      console.error('Error updating user progress:', error);
+    }
   };
 
   return (
     <div className="learning-path">
       <aside className="sidebar">
         <div className="custom-select">
-          <select
-            value={selectedLanguage}
-            onChange={(e) => setSelectedLanguage(e.target.value)}
-          >
+          <select value={selectedLanguage} onChange={(e) => setSelectedLanguage(e.target.value)}>
             <option value="Python">Python</option>
             <option value="C++">C++</option>
             <option value="Java">Java</option>
           </select>
         </div>
         <ul>
-          {lessons.map((lesson) => (
+          {lessons.map((lesson, index) => (
             <li
               key={lesson.id}
-              onClick={() => handleLessonClick(lesson)}
-              className={currentLesson?.id === lesson.id ? 'active' : ''}
+              onClick={() => handleLessonClick(lesson, index)}
+              className={`${currentLesson?.id === lesson.id ? 'active' : ''} ${isLessonLocked(index) ? 'locked' : ''}`}
+              style={{ cursor: isLessonLocked(index) ? 'not-allowed' : 'pointer' }}
             >
-              {lesson.title}
+              {lesson.title} {isLessonLocked(index) && '🔒'}
             </li>
           ))}
         </ul>
@@ -86,10 +183,10 @@ const LearningPath = () => {
       <main className="content">
         {currentLesson ? (
           <>
-            <ProgressBar progress={50} /> {/* Example progress */}
+            <ProgressBar progress={progressPercentage.toFixed(1)} />
+            <p>Total XP: {totalXp}</p>
             <h1>{currentLesson.title}</h1>
             <p>{currentLesson.content}</p>
-            {/* Pass the entire quizData array to the Quiz component */}
             <Quiz
               quizzes={quizData.map((quiz) => ({
                 id: quiz.id,
@@ -97,7 +194,7 @@ const LearningPath = () => {
                 options: JSON.parse(quiz.options),
                 correctAnswer: quiz.correctAnswer,
               }))}
-              onComplete={(xp) => console.log(`Earned ${xp} XP`)}
+              onComplete={handleQuizComplete}
             />
           </>
         ) : (

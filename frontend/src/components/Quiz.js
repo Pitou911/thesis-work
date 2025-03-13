@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './../styles/Quiz.css';
 
 const Quiz = ({ quizzes, onComplete }) => {
@@ -6,19 +6,28 @@ const Quiz = ({ quizzes, onComplete }) => {
   const [score, setScore] = useState(0);
   const [feedback, setFeedback] = useState('');
 
+  // Reset state when quizzes prop changes
+  useEffect(() => {
+    setCurrentQuizIndex(0);
+    setScore(0);
+    setFeedback('');
+  }, [quizzes]);
+
   const handleAnswerClick = (selectedAnswer) => {
     const currentQuiz = quizzes[currentQuizIndex];
     if (selectedAnswer === currentQuiz.correctAnswer) {
-      setScore(score + 1);
+      const newScore = score + 10;
+      setScore(newScore);
       setFeedback('Correct! 🎉');
-      setTimeout(() => {
-        setFeedback('');
-        if (currentQuizIndex < quizzes.length - 1) {
-          setCurrentQuizIndex(currentQuizIndex + 1);
-        } else {
-          onComplete(score + 1);
-        }
-      }, 1000);
+
+      if (currentQuizIndex < quizzes.length - 1) {
+        // Move to the next question
+        setCurrentQuizIndex(currentQuizIndex + 1);
+        setFeedback(''); // Clear feedback immediately for the next question
+      } else {
+        // All questions completed successfully
+        onComplete(newScore); // Pass the total score as XP
+      }
     } else {
       setFeedback('Incorrect. Try again! ❌');
     }

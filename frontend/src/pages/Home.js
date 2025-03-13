@@ -7,18 +7,17 @@ import personal_skill from './../assets/personal_skill.svg';
 import cpp_logo from './../assets/cpp_logo.png';
 import java_logo from './../assets/java_logo.png';
 import python_logo from './../assets/python.png';
+import { useAuth } from '../contexts/AuthContext';
 
 const Home = () => {
+
   return (
     <div className="home">
       <header className="hero">
-        <h1>ProgPlay Platform</h1>
+        <h1>ProgPlay</h1>
         <h1>the Gamification Learning Platform</h1>
         <p>Level up your coding skills one quest at a time. Learn, practice, and play your way to becoming a programming pro!</p>
-        <div className="buttons">
-          <Link to="/login" className="btn login-btn">Log in</Link>
-          <Link to="/signup" className="btn signup-btn">Start Now</Link>
-        </div>
+        
       </header>
       <section className="features">
         <div className='features-para'>
