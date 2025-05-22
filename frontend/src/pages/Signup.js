@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { use, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext'; // Import useAuth
 import './../styles/Signup.css';
@@ -6,14 +6,15 @@ import './../styles/Signup.css';
 const Signup = () => {
   const [userData, setUserData] = useState({ username: '', email: '', password: '' });
   const [error, setError] = useState('');
-  const { register } = useAuth(); // Get the register function from AuthContext
+  const { register, login } = useAuth(); // Get the register function from AuthContext
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
       await register(userData); // Call the register function
-      navigate('/login'); // Redirect to the login page after successful registration
+      await login(userData); // Call the login function after registration
+      navigate('/'); // Redirect to the home page after successful registration
     } catch (err) {
       setError(err.response?.data || 'Registration failed. Username or email may already exist.');
       console.error('Registration failed:', err);
